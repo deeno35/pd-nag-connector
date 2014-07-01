@@ -250,7 +250,10 @@ MESSAGE: foreach $message (@{$JSON->{'messages'}}) {
 		next MESSAGE;
 	}
 
-	if ($message->{'type'} eq 'incident.acknowledge') {
+	# For those using icinga with ACK_TIME=x, we will also change the default behavior here
+	# to ack icinga with expiration time for pagerduty "resolve" events as well.  If/when
+	# icinga's acknowledgement expires, a new incident will be submitted to pagerduty.
+	if (($message->{'type'} eq 'incident.acknowledge') || (($ACK_TIME != 0) && ($message->{'type'} eq 'incident.resolve'))){
 		if (! defined ($hostservice->{'service'})) {
 			($status, $error) = ackHost ($TIME, $hostservice->{'host'}, 'Acknowledged by PagerDuty', 'PagerDuty', 2, 0, 0);
 
